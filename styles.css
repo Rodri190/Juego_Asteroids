@@ -53,6 +53,20 @@ body {
     animation-iteration-count: infinite;
 }
 
+.ship {
+    position: absolute;
+    width: 0;
+    height: 0;
+
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid white;
+
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
 /*Movil */
 @media (max-width: 768px) {
     .space-board {

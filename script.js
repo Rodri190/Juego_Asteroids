@@ -66,6 +66,64 @@ class SpaceBoard {
     }
 }
 
+class Ship {
+    constructor(element) {
+        this.el = element;
+
+        this.x = window.innerWidth / 2;
+        this.y = window.innerHeight / 2;
+
+        this.speed = 5;
+
+        this.keys = {};
+
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.update();
+    }
+
+    bindEvents() {
+        window.addEventListener("keydown", (e) => {
+            this.keys[e.key] = true;
+        });
+
+        window.addEventListener("keyup", (e) => {
+            this.keys[e.key] = false;
+        });
+    }
+
+    update() {
+        const loop = () => {
+
+            if (this.keys["ArrowUp"]) this.y -= this.speed;
+            if (this.keys["ArrowDown"]) this.y += this.speed;
+            if (this.keys["ArrowLeft"]) this.x -= this.speed;
+            if (this.keys["ArrowRight"]) this.x += this.speed;
+
+            // limite
+            this.x = Math.max(1, Math.min(window.innerWidth, this.x));
+            this.y = Math.max(0, Math.min(window.innerHeight, this.y));
+            this.render();
+
+            requestAnimationFrame(loop);
+        };
+
+        loop();
+    }
+
+    render() {
+        this.el.style.left = this.x + "px";
+        this.el.style.top = this.y + "px";
+    }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    const shipElement = document.querySelector(".ship");
+    new Ship(shipElement);
+});
+
 /* Inicializar el juego cuando el DOM esté listo */
 document.addEventListener('DOMContentLoaded', () => {
     const boardElement = document.getElementById('space-board');
