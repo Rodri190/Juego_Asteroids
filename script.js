@@ -1,7 +1,3 @@
-/**
- * Clase SpaceBoard
- * Encargada de crear y gestionar el tablero del juego espacial
- */
 class SpaceBoard {
     constructor(boardElement) {
         this.boardElement = boardElement;
@@ -10,27 +6,18 @@ class SpaceBoard {
         this.setupResponsive();
     }
 
-    /**
-     * Inicializa el tablero generando estrella
-     */
     init() {
         this.generateStars();
     }
 
-    /**
-     * Genera las estrellas aleatoriamente en el tablero
-     */
     generateStars() {
         // Limpiar estrellas anteriores
         this.stars = [];
         this.boardElement.innerHTML = '';
 
         // Obtener dimensiones del tablero
-        const boardWidth = this.boardElement.offsetWidth;
-        const boardHeight = this.boardElement.offsetHeight;
-
-        // Calcular cantidad de estrellas basado en el área del tablero
-        // Aproximadamente 1 estrella cada 1000px²
+        const boardWidth = window.innerWidth;
+        const boardHeight = window.innerHeight;
         const starCount = Math.floor((boardWidth * boardHeight) / 1000);
 
         // Generar estrellas
@@ -39,13 +26,7 @@ class SpaceBoard {
         }
     }
 
-    /**
-     * Crea una estrella individual con posición y tamaño aleatorio
-     * @param {number} boardWidth - Ancho del tablero
-     * @param {number} boardHeight - Alto del tablero
-     */
     createStar(boardWidth, boardHeight) {
-        // Posición aleatoria dentro del tablero
         const x = Math.random() * boardWidth;
         const y = Math.random() * boardHeight;
 
@@ -69,9 +50,7 @@ class SpaceBoard {
         this.stars.push(star);
     }
 
-    /**
-     * Configura la regeneración de estrellas al cambiar el tamaño de la ventana
-     */
+    /* Configura la regeneración de estrellas al cambiar el tamaño de la ventana */
     setupResponsive() {
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -83,15 +62,10 @@ class SpaceBoard {
     }
 }
 
-/**
- * Inicializar el juego cuando el DOM esté listo
- */
+/* Inicializar el juego cuando el DOM esté listo */
 document.addEventListener('DOMContentLoaded', () => {
     const boardElement = document.getElementById('space-board');
     
-    // Crear instancia de SpaceBoard
     const spaceBoard = new SpaceBoard(boardElement);
 
-    // Hacer la instancia global para debugging (opcional)
-    window.spaceBoard = spaceBoard;
 });
