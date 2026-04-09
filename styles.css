@@ -32,11 +32,25 @@ body {
     box-shadow: 0 0 30px rgba(100, 150, 255, 0.2), inset 0 0 30px rgba(100, 150, 255, 0.1);
 }
 
+@keyframes fallStar {
+    from {
+        transform: translateY(-100);
+    }
+    to {
+        transform: translateY(100vh);
+    }
+}
+
 .star {
     position: absolute;
-    background-color: #ffffff;
-    border-radius: 100%;
+    background-color: white;
+    border-radius: 50%;
     pointer-events: none;
+
+    /* ANIM */
+    animation-name: fallStar;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
 }
 
 /*Movil */

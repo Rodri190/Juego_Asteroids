@@ -45,6 +45,10 @@ class SpaceBoard {
         star.style.height = `${size}px`;
         star.style.opacity = opacity;
 
+    const speed = Math.random() * 2 + 1;
+
+    star.style.animationDuration = `${speed}s`;
+
         // Agregar al tablero
         this.boardElement.appendChild(star);
         this.stars.push(star);
@@ -57,7 +61,7 @@ class SpaceBoard {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
                 this.generateStars();
-            }, 250); // Esperar 250ms después de que termine el resize
+            }, 1); 
         });
     }
 }
