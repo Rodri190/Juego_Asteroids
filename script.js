@@ -90,6 +90,34 @@ class Bullet {
     }
 }
 
+class Asteroid {
+    constructor(width) {
+        this.size = Math.random() * 30 + 20;
+        this.radius = this.size / 2;
+        this.x = this.radius + Math.random() * (width - this.size);
+        this.y = -this.radius;
+        this.speed = 100 + Math.random() * 200;
+    }
+
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = "#888";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "gray";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    isOffScreen(height) {
+        return this.y - this.radius > height;
+    }
+}
+
 class Ship {
     constructor(width, height) {
         this.speed = 340;
@@ -157,9 +185,12 @@ class Game {
         this.ctx = canvas.getContext("2d");
         this.keys = {};
         this.bullets = [];
+        this.asteroids = [];
         this.lastTime = 0;
         this.lastShot = 0;
+        this.lastAsteroid = 0;
         this.shootDelay = 200;
+        this.asteroidDelay = 2000;
 
         this.resizeCanvas();
         this.starField = new StarField(this.canvas.width, this.canvas.height);
@@ -200,13 +231,26 @@ class Game {
     }
 
     update(deltaTime) {
+        const now = Date.now();
+
         this.starField.update(deltaTime);
         this.ship.update(deltaTime);
+        //asteroide
+        if (now - this.lastAsteroid > this.asteroidDelay) {
+            this.lastAsteroid = now;
+            this.asteroids.push(new Asteroid(this.canvas.width));
+        }
 //bala
         this.bullets = this.bullets.filter((bullet) => !bullet.isOffScreen(this.canvas.height));
+        //asteroide
+        this.asteroids = this.asteroids.filter((asteroid) => !asteroid.isOffScreen(this.canvas.height));
 
         for (const bullet of this.bullets) {
             bullet.update(deltaTime);
+        }
+//asteroide
+        for (const asteroid of this.asteroids) {
+            asteroid.update(deltaTime);
         }
     }
 
@@ -215,7 +259,11 @@ class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.starField.draw(this.ctx);
-    //bala
+        //asteroide
+        for (const asteroid of this.asteroids) {
+            asteroid.draw(this.ctx);
+        }
+        //bala
         for (const bullet of this.bullets) {
             bullet.draw(this.ctx);
         }
