@@ -67,6 +67,28 @@ class StarField {
         }
     }
 }
+//las balas
+class Bullet {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.speed = 600;
+        this.size = 6;
+    }
+
+    update(deltaTime) {
+        this.y -= this.speed * deltaTime;
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = "gray";
+        ctx.fillRect(this.x - 2, this.y, 4, 12);
+    }
+
+    isOffScreen() {
+        return this.y + this.size < 0;
+    }
+}
 
 class Ship {
     constructor(width, height) {
@@ -133,13 +155,37 @@ class Game {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+        this.keys = {};
+        this.bullets = [];
         this.lastTime = 0;
+        this.lastShot = 0;
+        this.shootDelay = 200;
 
         this.resizeCanvas();
         this.starField = new StarField(this.canvas.width, this.canvas.height);
         this.ship = new Ship(this.canvas.width, this.canvas.height);
 
+        this.bindEvents();
         window.addEventListener("resize", () => this.handleResize());
+    }
+//bala
+    bindEvents() {
+        window.addEventListener("keydown", (event) => {
+            this.keys[event.key] = true;
+
+            if (event.key === " " || event.code === "Space") {
+                event.preventDefault();
+                this.shoot();
+            }
+        });
+
+        window.addEventListener("keyup", (event) => {
+            this.keys[event.key] = false;
+
+            if (event.key === " " || event.code === "Space") {
+                event.preventDefault();
+            }
+        });
     }
 
     resizeCanvas() {
@@ -156,6 +202,12 @@ class Game {
     update(deltaTime) {
         this.starField.update(deltaTime);
         this.ship.update(deltaTime);
+//bala
+        this.bullets = this.bullets.filter((bullet) => !bullet.isOffScreen(this.canvas.height));
+
+        for (const bullet of this.bullets) {
+            bullet.update(deltaTime);
+        }
     }
 
     draw() {
@@ -163,7 +215,21 @@ class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.starField.draw(this.ctx);
+    //bala
+        for (const bullet of this.bullets) {
+            bullet.draw(this.ctx);
+        }
         this.ship.draw(this.ctx);
+    }
+//bala
+    shoot() {
+        const now = Date.now();
+        if (now - this.lastShot < this.shootDelay) {
+            return;
+        }
+
+        this.lastShot = now;
+        this.bullets.push(new Bullet(this.ship.x, this.ship.y - this.ship.size));
     }
 
     loop = (time) => {
