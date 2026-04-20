@@ -153,6 +153,43 @@ class Asteroid {
 }
 }
 
+class Explosion {
+    constructor(x, y) {
+        this.particles = [];
+
+        for (let i = 0; i < 15; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                dx: (Math.random() - 0.5) * 200,
+                dy: (Math.random() - 0.5) * 200,
+                life: 1
+            });
+        }
+    }
+
+    update(deltaTime) {
+        for (const p of this.particles) {
+            p.x += p.dx * deltaTime;
+            p.y += p.dy * deltaTime;
+            p.life -= deltaTime;
+        }
+
+        this.particles = this.particles.filter(p => p.life > 0);
+    }
+
+    draw(ctx) {
+        for (const p of this.particles) {
+            ctx.fillStyle = `rgba(255,150,0,${p.life})`;
+            ctx.fillRect(p.x, p.y, 3, 3);
+        }
+    }
+
+    isDone() {
+        return this.particles.length === 0;
+    }
+}
+
 class Ship {
     constructor(width, height) {
         this.speed = 340;
@@ -221,6 +258,7 @@ class Game {
         this.keys = {};
         this.bullets = [];
         this.asteroids = [];
+        this.explosions = [];
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
@@ -287,6 +325,36 @@ class Game {
         for (const asteroid of this.asteroids) {
             asteroid.update(deltaTime);
         }
+
+        // explosiones de esteroide
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            for (let j = this.asteroids.length - 1; j >= 0; j--) {
+
+                const bullet = this.bullets[i];
+                const asteroid = this.asteroids[j];
+
+                const dx = bullet.x - asteroid.x;
+                const dy = bullet.y - asteroid.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < asteroid.radius) {
+
+                    this.createExplosion(asteroid.x, asteroid.y);
+
+                    this.bullets.splice(i, 1);
+                    this.asteroids.splice(j, 1);
+
+                    break;
+                }
+            }
+        }
+
+        // Update explosiones
+        this.explosions = this.explosions.filter(e => !e.isDone());
+
+        for (const explosion of this.explosions) {
+            explosion.update(deltaTime);
+        }
     }
 
     draw() {
@@ -302,8 +370,16 @@ class Game {
         for (const bullet of this.bullets) {
             bullet.draw(this.ctx);
         }
+     // explosion
+        for (const explosion of this.explosions) {
+            explosion.draw(this.ctx);
+        }
         this.ship.draw(this.ctx);
     }
+    createExplosion(x, y) {
+        this.explosions.push(new Explosion(x, y));
+    }
+
 //bala
     shoot() {
         const now = Date.now();
