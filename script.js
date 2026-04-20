@@ -97,6 +97,7 @@ class Asteroid {
         this.x = this.radius + Math.random() * (width - this.size);
         this.y = -this.radius;
         this.speed = 100 + Math.random() * 200;
+        this.points = this.generateShape();
     }
 
     update(deltaTime) {
@@ -104,18 +105,52 @@ class Asteroid {
     }
 
     draw(ctx) {
-        ctx.fillStyle = "#888";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "gray";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+    ctx.fillStyle = "#888";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "gray";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        this.x + this.points[0].x,
+        this.y + this.points[0].y
+    );
+
+    for (let i = 1; i < this.points.length; i++) {
+        ctx.lineTo(
+            this.x + this.points[i].x,
+            this.y + this.points[i].y
+        );
     }
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+}
 
     isOffScreen(height) {
         return this.y - this.radius > height;
     }
+
+    generateShape() {
+    const points = [];
+    const vertices = Math.floor(Math.random() * 5) + 6; // 6 a 10 lados
+
+    for (let i = 0; i < vertices; i++) {
+        const angle = (Math.PI * 2 / vertices) * i;
+
+        const variation = Math.random() * 10 - 5;
+        const radius = this.radius + variation;
+
+        points.push({
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius
+        });
+    }
+
+    return points;
+}
 }
 
 class Ship {
