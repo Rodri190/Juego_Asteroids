@@ -259,6 +259,8 @@ class Game {
         this.bullets = [];
         this.asteroids = [];
         this.explosions = [];
+        this.score = 0;
+        this.pointsPerAsteroid = 10;
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
@@ -335,14 +337,16 @@ class Game {
 
                 const dx = bullet.x - asteroid.x;
                 const dy = bullet.y - asteroid.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const distanceSquared = dx * dx + dy * dy;
+                const radiusSquared = asteroid.radius * asteroid.radius;
 
-                if (distance < asteroid.radius) {
+                if (distanceSquared < radiusSquared) {
 
                     this.createExplosion(asteroid.x, asteroid.y);
 
                     this.bullets.splice(i, 1);
                     this.asteroids.splice(j, 1);
+                    this.score += this.pointsPerAsteroid;
 
                     break;
                 }
@@ -375,7 +379,22 @@ class Game {
             explosion.draw(this.ctx);
         }
         this.ship.draw(this.ctx);
+//score
+        this.drawScore();
     }
+
+    drawScore() {
+        this.ctx.save();
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.font = "20px Arial";
+        this.ctx.textAlign = "right";
+        this.ctx.textBaseline = "top";
+        this.ctx.shadowColor = "rgba(255, 255, 255, 0.35)";
+        this.ctx.shadowBlur = 8;
+        this.ctx.fillText(`Score: ${this.score}`, this.canvas.width - 20, 20);
+        this.ctx.restore();
+    }
+
     createExplosion(x, y) {
         this.explosions.push(new Explosion(x, y));
     }
