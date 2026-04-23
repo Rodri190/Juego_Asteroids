@@ -250,6 +250,42 @@ class Ship {
         ctx.fill();
     }
 }
+//nave enemiga 
+class EnemyShip {
+    constructor(width, height) {
+        this.size = 24;
+        this.radius = 22;
+        this.hitsTaken = 0;
+        this.maxHits = 10;
+        this.y = Math.max(this.size + 16, 60);
+        this.bounds = { width, height };
+        this.x = width / 2;
+    }
+
+    update() {
+    }
+
+    resize(width, height) {
+        this.bounds.width = width;
+        this.bounds.height = height;
+        this.x = Math.min(Math.max(this.size, this.x), width - this.size);
+        this.y = Math.min(Math.max(this.size + 16, this.y), Math.max(this.size + 16, height * 0.25));
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = "#ff3b30";
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(255, 59, 48, 0.65)";
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y + 18);
+        ctx.lineTo(this.x - 18, this.y - 14);
+        ctx.lineTo(this.x + 18, this.y - 14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
 
 class Game {
     constructor(canvas) {
@@ -263,6 +299,11 @@ class Game {
         this.score = this.loadScore();
         this.scoreSavePending = false;
         this.pointsPerAsteroid = 10;
+        this.pointsPerEnemyHit = 10;
+        this.enemy = null;
+        this.enemyActive = false;
+        this.enemySpawnScore = 100;
+        this.enemyDefeated = false;
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
@@ -305,6 +346,9 @@ class Game {
         this.resizeCanvas();
         this.starField.resize(this.canvas.width, this.canvas.height);
         this.ship.resize(this.canvas.width, this.canvas.height);
+        if (this.enemyActive) {
+            this.enemy.resize(this.canvas.width, this.canvas.height);
+        }
     }
 
     update(deltaTime) {
@@ -312,8 +356,12 @@ class Game {
 
         this.starField.update(deltaTime);
         this.ship.update(deltaTime);
-        //asteroide
-        if (now - this.lastAsteroid > this.asteroidDelay) {
+        this.spawnEnemyIfNeeded();
+        if (this.enemyActive) {
+            this.enemy.update();
+        }
+        //asteroide desaparece cuando hay nave enemiga
+        if (!this.enemyActive && now - this.lastAsteroid > this.asteroidDelay) {
             this.lastAsteroid = now;
             this.asteroids.push(new Asteroid(this.canvas.width));
         }
@@ -329,6 +377,8 @@ class Game {
         for (const asteroid of this.asteroids) {
             asteroid.update(deltaTime);
         }
+
+        this.handleEnemyBulletCollisions();
 
         // explosiones de esteroide
         for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -373,6 +423,9 @@ class Game {
         for (const asteroid of this.asteroids) {
             asteroid.draw(this.ctx);
         }
+        if (this.enemyActive) {
+            this.enemy.draw(this.ctx);
+        }
         //bala
         for (const bullet of this.bullets) {
             bullet.draw(this.ctx);
@@ -396,6 +449,45 @@ class Game {
         this.ctx.shadowBlur = 8;
         this.ctx.fillText(`Score: ${this.score}`, this.canvas.width - 20, 20);
         this.ctx.restore();
+    }
+//cuando aparece la nave enemiga
+    spawnEnemyIfNeeded() {
+        if (this.enemyActive || this.enemyDefeated || this.score < this.enemySpawnScore) {
+            return;
+        }
+
+        this.enemy = new EnemyShip(this.canvas.width, this.canvas.height);
+        this.enemyActive = true;
+    }
+
+    handleEnemyBulletCollisions() {
+        if (!this.enemyActive) {
+            return;
+        }
+
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            const bullet = this.bullets[i];
+            const dx = bullet.x - this.enemy.x;
+            const dy = bullet.y - this.enemy.y;
+            const distanceSquared = dx * dx + dy * dy;
+            const radiusSquared = this.enemy.radius * this.enemy.radius;
+
+            if (distanceSquared < radiusSquared) {
+                this.bullets.splice(i, 1);
+                this.enemy.hitsTaken += 1;
+                this.score += this.pointsPerEnemyHit;
+                this.scoreSavePending = true;
+//cuando se muere la nave enemiga 
+                if (this.enemy.hitsTaken >= this.enemy.maxHits) {
+                    this.createExplosion(this.enemy.x, this.enemy.y);
+                    this.enemy = null;
+                    this.enemyActive = false;
+                    this.enemyDefeated = true;
+                }
+
+                break;
+            }
+        }
     }
 //agregando el localstorage
     loadScore() {
@@ -422,6 +514,7 @@ class Game {
     resetScore() {//reinicia el juego 
         this.score = 0;
         this.scoreSavePending = false;
+        this.enemyDefeated = false;
 
         try {
             localStorage.removeItem(this.scoreStorageKey);
@@ -438,6 +531,8 @@ class Game {
         this.bullets = [];
         this.asteroids = [];
         this.explosions = [];
+        this.enemy = null;
+        this.enemyActive = false;
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
