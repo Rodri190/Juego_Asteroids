@@ -259,7 +259,9 @@ class Game {
         this.bullets = [];
         this.asteroids = [];
         this.explosions = [];
-        this.score = 0;
+        this.scoreStorageKey = "currentScore";
+        this.score = this.loadScore();
+        this.scoreSavePending = false;
         this.pointsPerAsteroid = 10;
         this.lastTime = 0;
         this.lastShot = 0;
@@ -347,6 +349,7 @@ class Game {
                     this.bullets.splice(i, 1);
                     this.asteroids.splice(j, 1);
                     this.score += this.pointsPerAsteroid;
+                    this.scoreSavePending = true;
 
                     break;
                 }
@@ -394,9 +397,53 @@ class Game {
         this.ctx.fillText(`Score: ${this.score}`, this.canvas.width - 20, 20);
         this.ctx.restore();
     }
+//agregando el localstorage
+    loadScore() {
+        try {
+            const storedScore = localStorage.getItem(this.scoreStorageKey); //carga el valor score
+            const parsedScore = Number.parseInt(storedScore ?? "0", 10);
+            return Number.isFinite(parsedScore) ? parsedScore : 0;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    saveScore() { //guardamos el score
+        try {
+            localStorage.setItem(this.scoreStorageKey, String(this.score));
+        } catch (error) {
+            this.scoreSavePending = false;
+            return;
+        }
+
+        this.scoreSavePending = false;
+    }
+
+    resetScore() {//reinicia el juego 
+        this.score = 0;
+        this.scoreSavePending = false;
+
+        try {
+            localStorage.removeItem(this.scoreStorageKey);
+        } catch (error) {
+            return;
+        }
+    }
 
     createExplosion(x, y) {
         this.explosions.push(new Explosion(x, y));
+    }
+
+    restart() {
+        this.bullets = [];
+        this.asteroids = [];
+        this.explosions = [];
+        this.lastTime = 0;
+        this.lastShot = 0;
+        this.lastAsteroid = 0;
+        this.ship.x = this.canvas.width / 2;
+        this.ship.y = this.canvas.height / 2;
+        this.resetScore();
     }
 
 //bala
@@ -415,6 +462,9 @@ class Game {
         this.lastTime = time;
 
         this.update(deltaTime);
+        if (this.scoreSavePending) {
+            this.saveScore();
+        }
         this.draw();
         requestAnimationFrame(this.loop);
     };
