@@ -250,6 +250,7 @@ class Ship {
         ctx.fill();
     }
 }
+
 //nave enemiga 
 class EnemyShip {
     constructor(width, height) {
@@ -304,6 +305,7 @@ class Game {
         this.enemyActive = false;
         this.enemySpawnScore = 100;
         this.enemyDefeated = false;
+        this.gameOver = false;
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
@@ -324,6 +326,12 @@ class Game {
 
             if (event.key === " " || event.code === "Space") {
                 event.preventDefault();
+//game Over y reinicio
+                if (this.gameOver) {
+                    this.restart();
+                    return;
+                }
+
                 this.shoot();
             }
         });
@@ -352,6 +360,10 @@ class Game {
     }
 
     update(deltaTime) {
+        if (this.gameOver) {
+            return;
+        }
+
         const now = Date.now();
 
         this.starField.update(deltaTime);
@@ -380,7 +392,7 @@ class Game {
 
         this.handleEnemyBulletCollisions();
 
-        // explosiones de esteroide
+// explosiones de esteroide
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             for (let j = this.asteroids.length - 1; j >= 0; j--) {
 
@@ -405,6 +417,8 @@ class Game {
                 }
             }
         }
+
+        this.checkShipAsteroidCollisions();
 
         // Update explosiones
         this.explosions = this.explosions.filter(e => !e.isDone());
@@ -437,6 +451,10 @@ class Game {
         this.ship.draw(this.ctx);
 //score
         this.drawScore();
+
+        if (this.gameOver) {
+            this.drawGameOver();
+        }
     }
 
     drawScore() {
@@ -448,6 +466,24 @@ class Game {
         this.ctx.shadowColor = "rgba(255, 255, 255, 0.35)";
         this.ctx.shadowBlur = 8;
         this.ctx.fillText(`Score: ${this.score}`, this.canvas.width - 20, 20);
+        this.ctx.restore();
+    }
+//vista game over
+    drawGameOver() {
+        this.ctx.save();
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.72)";
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.shadowColor = "rgba(255, 255, 255, 0.3)";
+        this.ctx.shadowBlur = 12;
+        this.ctx.font = "bold 52px Arial";
+        this.ctx.fillText("GAME OVER", this.canvas.width / 2, this.canvas.height / 2 - 50);
+        this.ctx.font = "24px Arial";
+        this.ctx.fillText(`Puntaje final: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+        this.ctx.font = "20px Arial";
+        this.ctx.fillText("Presiona ESPACIO para reiniciar", this.canvas.width / 2, this.canvas.height / 2 + 60);
         this.ctx.restore();
     }
 //cuando aparece la nave enemiga
@@ -489,6 +525,22 @@ class Game {
             }
         }
     }
+//cuando aparece el game over
+    checkShipAsteroidCollisions() {
+        const shipRadius = this.ship.size * 0.9;
+
+        for (const asteroid of this.asteroids) {
+            const dx = this.ship.x - asteroid.x;
+            const dy = this.ship.y - asteroid.y;
+            const collisionDistance = shipRadius + asteroid.radius;
+
+            if (dx * dx + dy * dy < collisionDistance * collisionDistance) {
+                this.createExplosion(this.ship.x, this.ship.y);
+                this.gameOver = true;
+                return;
+            }
+        }
+    }
 //agregando el localstorage
     loadScore() {
         try {
@@ -499,8 +551,8 @@ class Game {
             return 0;
         }
     }
-
-    saveScore() { //guardamos el score
+//guardamos el score
+    saveScore() {
         try {
             localStorage.setItem(this.scoreStorageKey, String(this.score));
         } catch (error) {
@@ -510,8 +562,8 @@ class Game {
 
         this.scoreSavePending = false;
     }
-
-    resetScore() {//reinicia el juego 
+//reinicia el juego 
+    resetScore() {
         this.score = 0;
         this.scoreSavePending = false;
         this.enemyDefeated = false;
@@ -533,6 +585,7 @@ class Game {
         this.explosions = [];
         this.enemy = null;
         this.enemyActive = false;
+        this.gameOver = false;
         this.lastTime = 0;
         this.lastShot = 0;
         this.lastAsteroid = 0;
@@ -543,6 +596,10 @@ class Game {
 
 //bala
     shoot() {
+        if (this.gameOver) {
+            return;
+        }
+
         const now = Date.now();
         if (now - this.lastShot < this.shootDelay) {
             return;
