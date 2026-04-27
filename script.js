@@ -89,7 +89,7 @@ class Bullet {
         return this.y + this.size < 0;
     }
 }
-
+//asteroide
 class Asteroid {
     constructor(width) {
         this.size = Math.random() * 30 + 20;
@@ -152,7 +152,7 @@ class Asteroid {
     return points;
 }
 }
-
+//explocion
 class Explosion {
     constructor(x, y) {
         this.particles = [];
@@ -189,7 +189,7 @@ class Explosion {
         return this.particles.length === 0;
     }
 }
-
+//mi nave
 class Ship {
     constructor(width, height) {
         this.speed = 340;
@@ -303,7 +303,7 @@ class Game {
         this.pointsPerEnemyHit = 10;
         this.enemy = null;
         this.enemyActive = false;
-        this.enemySpawnScore = 100;
+        this.enemySpawnScore = 20;
         this.enemyDefeated = false;
         this.gameOver = false;
         this.lastTime = 0;
@@ -314,7 +314,7 @@ class Game {
 
         this.resizeCanvas();
         this.starField = new StarField(this.canvas.width, this.canvas.height);
-        this.ship = new Ship(this.canvas.width, this.canvas.height);
+        this.ship = new Ship(this.canvas.width, this.canvas.height); //se crea la nave
 
         this.bindEvents();
         window.addEventListener("resize", () => this.handleResize());
@@ -372,7 +372,7 @@ class Game {
         if (this.enemyActive) {
             this.enemy.update();
         }
-        //asteroide desaparece cuando hay nave enemiga
+        //asteroide desaparece cuando hay nave enemiga y aparece solo si no hay nave enemiga
         if (!this.enemyActive && now - this.lastAsteroid > this.asteroidDelay) {
             this.lastAsteroid = now;
             this.asteroids.push(new Asteroid(this.canvas.width));
@@ -403,7 +403,7 @@ class Game {
                 const dy = bullet.y - asteroid.y;
                 const distanceSquared = dx * dx + dy * dy;
                 const radiusSquared = asteroid.radius * asteroid.radius;
-
+//cuando disparo hace explocion al asteroide 
                 if (distanceSquared < radiusSquared) {
 
                     this.createExplosion(asteroid.x, asteroid.y);
@@ -451,7 +451,7 @@ class Game {
         this.ship.draw(this.ctx);
 //score
         this.drawScore();
-
+//la vista game over
         if (this.gameOver) {
             this.drawGameOver();
         }
@@ -493,9 +493,9 @@ class Game {
         }
 
         this.enemy = new EnemyShip(this.canvas.width, this.canvas.height);
-        this.enemyActive = true;
+        this.enemyActive = true;//aparece cuando el score llega 100
     }
-
+//disparo pierde vida el enemigo
     handleEnemyBulletCollisions() {
         if (!this.enemyActive) {
             return;
@@ -594,7 +594,7 @@ class Game {
         this.resetScore();
     }
 
-//bala
+//bala dispara cuando apreto spaccio
     shoot() {
         if (this.gameOver) {
             return;
@@ -625,9 +625,9 @@ class Game {
         requestAnimationFrame(this.loop);
     }
 }
-
+//inicia el juego 
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
-    const game = new Game(canvas);
-    game.start();
+    const game = new Game(canvas);//crea en canva
+    game.start();//inica
 });
